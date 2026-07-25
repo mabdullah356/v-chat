@@ -11,8 +11,11 @@ app.use(express.urlencoded({extended:true}));
 
 
 //Routes
-const userRouter = require("./Routes/user.routes");
-app.use("/api/users",userRouter);
+const userRoutes = require("./Routes/user.routes");
+const chatRoutes = require("./Routes/chat.routes");
+
+app.use("/api/users",userRoutes);
+app.use("/api/chats",chatRoutes);
 
 
 
