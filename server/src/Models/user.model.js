@@ -5,14 +5,22 @@ const userSchema = new mongoose.Schema({
 
     fullName:{
         type: String,
+        required:[true,"Full name is required"],
+        trim:true
+    },
+    username:{
+        type:String,
         required:[true,"Username is required"],
-        unique:[true , "Username is Unique"]
+        unique:[true,"Username must be unique"],
+        trim:true,
+        lowercase:true
     },
     email:{
         type:String,
         required:[true,"Email is required"],
-        unique:[true , "Email is Unique"]
-
+        unique:[true , "Email must be unique"],
+        trim:true,
+        lowercase:true
     },
     password:{
         type:String,
@@ -31,11 +39,11 @@ const userSchema = new mongoose.Schema({
         default:false
     },
     socketId:{
-        type:Strung
+        type:String
     }
 
 },{timestamps:true});
 
-const User = new mongoose.model("User",userSchema);
+const User = mongoose.model("User",userSchema);
 
 module.exports = User;
