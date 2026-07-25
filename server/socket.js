@@ -1,27 +1,22 @@
 const { Server } = require("socket.io");
 const User = require("./src/Models/user.model");
 
-
-
-//set connected user isOnline=true and also set socket.id
-const UpdateUserOnline = async (socketId,userId)=>{
-
-    if(userId){
-        const user  = await User.findByIdAndUpdate(userId,{socketId,isOnline:true});
-        
-        if(!user){
-            return "User not found"
-        }
+const UpdateUserOnline = async (socketId, userId) => {
+    if (userId) {
+        const user = await User.findByIdAndUpdate(userId, { socketId, isOnline: true }, { new: true });
+        if (!user) return null;
+        return user;
+    } else {
+        const user = await User.findOneAndUpdate({ socketId }, { socketId: "", isOnline: false }, { new: true });
+        if (!user) return null;
+        return user;
     }
-    else{
-        const user  = await User.findOneAndUpdate({socketId},{socketId:"",isOnline:false});
-        
-        if(!user){
-            return "User not found"
-        }
-    }
-}
+};
 
+const GetOnlineUsers = async () => {
+    const users = await User.find({ isOnline: true }).select("fullName username avatar");
+    return users;
+};
 
 const SocketInit = (httpServer) => {
     const io = new Server(httpServer);
@@ -29,13 +24,16 @@ const SocketInit = (httpServer) => {
     io.on("connection", (socket) => {
         console.log("User connected:", socket.id);
 
-        socket.on("send-userId",(id)=>{
-            console.log(id);
-            UpdateUserOnline(socket.id,id);
-        })
+        socket.on("send-userId", async (id) => {
+            await UpdateUserOnline(socket.id, id);
+            const onlineUsers = await GetOnlineUsers();
+            io.emit("online-users", onlineUsers);
+        });
 
-        socket.on("disconnect", () => {
-            UpdateUserOnline(socket.id);
+        socket.on("disconnect", async () => {
+            await UpdateUserOnline(socket.id);
+            const onlineUsers = await GetOnlineUsers();
+            io.emit("online-users", onlineUsers);
             console.log("User disconnected:", socket.id);
         });
     });
