@@ -12,6 +12,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { currUser } from "../Contexts/CurrUserContext";
+import { io } from "socket.io-client";
 import axios from "axios";
 
 const Chat = () => {
@@ -45,6 +46,37 @@ function UserChat() {
   const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
   const messagesEndRef = useRef(null);
+  const socketRef = useRef(null);
+
+  useEffect(() => {
+    const socket = io("http://localhost:3000");
+    socketRef.current = socket;
+
+    socket.on("connect", () => {
+      if (user?._id) socket.emit("join", user._id);
+    });
+
+    return () => {
+      socket.disconnect();
+      socketRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    const socket = socketRef.current;
+    if (!socket) return;
+
+    const handleNewMessage = (msg) => {
+      if (currentUser?.username && msg.sender._id !== user._id) {
+        setMessages((prev) => [msg, ...prev]);
+      }
+    };
+
+    socket.on("receive-message", handleNewMessage);
+    return () => {
+      socket.off("receive-message", handleNewMessage);
+    };
+  }, [currentUser, user._id]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -95,6 +127,11 @@ function UserChat() {
       };
       setMessages((prev) => [newMsg, ...prev]);
       setMessage("");
+      socketRef.current?.emit("send-message", {
+        receiverId: currentUser._id,
+        receiverUsername: currentUser.username,
+        chat: newMsg,
+      });
     } catch (error) {
       console.error(error);
     } finally {

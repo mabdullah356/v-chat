@@ -31,10 +31,16 @@ const SocketInit = (httpServer) => {
 
         socket.on("join", async (id) => {
             console.log(id)
+            socket.join(id);
             await UpdateUserOnline(socket.id, id);
             const onlineUsers = await GetOnlineUsers();
-            // console.log(onlineUsers);
             io.emit("online-users", onlineUsers);
+        });
+
+        socket.on("send-message", ({ receiverId, receiverUsername, chat }) => {
+            if (receiverId) {
+                io.to(receiverId).emit("receive-message", chat);
+            }
         });
 
         socket.on("disconnect", async () => {
