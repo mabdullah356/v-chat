@@ -55,7 +55,6 @@ const Signup = async (req,res)=>{
 
 //login controller for user
 const Login = async (req,res)=>{
-
     const {email,password} = req.body;
 
     if(!email || !password){
