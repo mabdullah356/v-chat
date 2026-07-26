@@ -19,14 +19,21 @@ const GetOnlineUsers = async () => {
 };
 
 const SocketInit = (httpServer) => {
-    const io = new Server(httpServer);
+    const io = new Server(httpServer, {
+        cors: {
+            origin: "http://localhost:5173",
+            methods: ["GET", "POST"]
+        }
+    });
 
     io.on("connection", (socket) => {
         console.log("User connected:", socket.id);
 
-        socket.on("send-userId", async (id) => {
+        socket.on("join", async (id) => {
+            console.log(id)
             await UpdateUserOnline(socket.id, id);
             const onlineUsers = await GetOnlineUsers();
+            // console.log(onlineUsers);
             io.emit("online-users", onlineUsers);
         });
 
