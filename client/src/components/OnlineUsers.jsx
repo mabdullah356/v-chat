@@ -1,12 +1,14 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useContext } from "react";
 import { io } from "socket.io-client";
 import { Users } from "lucide-react";
+import { currUser } from "./Contexts/CurrUserContext";
 
 const OnlineUsers = () => {
   const [users, setUsers] = useState([]);
   const [connected, setConnected] = useState(false);
   const socketRef = useRef(null);
   const user = JSON.parse(localStorage.getItem("user"));
+  const { currentUser, setCurrentUser } = useContext(currUser);
 
   useEffect(() => {
     const socket = io("http://localhost:3000");
@@ -53,7 +55,12 @@ const OnlineUsers = () => {
             {users.map((u) => (
               <li
                 key={u._id || u.socketId}
-                className="flex items-center gap-3 px-3 py-2 bg-gray-200 rounded-2xl hover:shadow-2xl hover:bg-gray-50 transition-colors cursor-pointer"
+                onClick={() => setCurrentUser(u)}
+                className={`flex items-center gap-3 px-3 py-2 rounded-2xl transition-all cursor-pointer ${
+                  currentUser?._id === u._id
+                    ? "bg-indigo-100 shadow-sm"
+                    : "bg-gray-200 hover:shadow-2xl hover:bg-gray-50"
+                }`}
               >
                 <div className="relative shrink-0">
                   <img
