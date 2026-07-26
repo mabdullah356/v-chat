@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, Loader2, Eye, EyeOff } from "lucide-react";
+import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import axios from "axios";
 
 const Login = () => {
@@ -39,7 +39,6 @@ const Login = () => {
         navigate(`/chat/${data.user.username}`);
       }, 800);
     } catch (err) {
-      console.error(err);
       const message =
         err.response?.data?.message || "Something went wrong. Please try again.";
       setError(message);
@@ -49,111 +48,129 @@ const Login = () => {
   };
 
   return (
-    <main className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 px-4">
-      <section className="w-full max-w-md">
-        <div className="bg-gray-900/80 backdrop-blur-sm border border-gray-800 rounded-2xl shadow-2xl p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-white tracking-tight">
-              Welcome Back
-            </h1>
-            <p className="text-gray-400 mt-2 text-sm">
-              Sign in to continue to V-Chat
-            </p>
+    <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-10">
+      <article className="w-full max-w-sm">
+        <nav className="flex items-center gap-2.5 mb-8">
+          <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center">
+            <span className="text-white font-bold text-xs">V</span>
           </div>
+          <span className="font-semibold text-gray-900 tracking-tight text-lg">
+            V-Chat
+          </span>
+        </nav>
 
-          {error && (
-            <div className="mb-4 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">
-              {error}
-            </div>
-          )}
+        <header className="mb-8">
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+            Sign in
+          </h1>
+          <p className="text-gray-500 text-sm mt-1.5">
+            Enter your credentials to access your account
+          </p>
+        </header>
 
-          {success && (
-            <div className="mb-4 px-4 py-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm text-center">
-              {success}
-            </div>
-          )}
+        {error && (
+          <aside className="mb-5 px-4 py-2.5 rounded-md bg-red-50 border border-red-200 text-red-600 text-sm" role="alert">
+            {error}
+          </aside>
+        )}
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-            <div className="flex flex-col gap-1.5">
+        {success && (
+          <aside className="mb-5 px-4 py-2.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-600 text-sm" role="status">
+            {success}
+          </aside>
+        )}
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <fieldset className="flex flex-col gap-4 border-0 p-0 m-0">
+            <div>
               <label
                 htmlFor="email"
-                className="text-sm font-medium text-gray-300"
+                className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5 block"
               >
                 Email
               </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-500" />
-                <input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={loading}
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-800/60 border border-gray-700 rounded-lg text-white placeholder-gray-500 text-sm outline-none transition-all duration-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
-                />
-              </div>
+              <input
+                id="email"
+                type="email"
+                placeholder="name@company.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
+                className="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-md text-gray-900 text-sm placeholder-gray-400 outline-none transition-colors hover:border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 disabled:opacity-50"
+              />
             </div>
 
-            <div className="flex flex-col gap-1.5">
+            <div>
               <label
                 htmlFor="password"
-                className="text-sm font-medium text-gray-300"
+                className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5 block"
               >
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-500" />
                 <input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={loading}
-                  className="w-full pl-10 pr-10 py-2.5 bg-gray-800/60 border border-gray-700 rounded-lg text-white placeholder-gray-500 text-sm outline-none transition-all duration-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                  className="w-full px-3.5 py-2.5 pr-10 bg-white border border-gray-200 rounded-md text-gray-900 text-sm placeholder-gray-400 outline-none transition-colors hover:border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 disabled:opacity-50"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  tabIndex={-1}
                 >
                   {showPassword ? (
-                    <EyeOff className="w-4.5 h-4.5" />
+                    <EyeOff className="w-4 h-4" />
                   ) : (
-                    <Eye className="w-4.5 h-4.5" />
+                    <Eye className="w-4 h-4" />
                   )}
                 </button>
               </div>
             </div>
+          </fieldset>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-2.5 mt-1 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-600/50 text-white font-medium rounded-lg text-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                "Sign In"
-              )}
-            </button>
-          </form>
+          <button
+            type="submit"
+            disabled={loading}
+            className="mt-1 w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 disabled:bg-indigo-400 text-white font-medium rounded-md text-sm transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
+          >
+            {loading ? (
+              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <>
+                Continue
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
+          </button>
+        </form>
 
-          <p className="text-center text-sm text-gray-400 mt-6">
-            Don&apos;t have an account?{" "}
+        <footer className="mt-8 text-center">
+          <p className="text-sm text-gray-500">
+            New here?{" "}
             <Link
               to="/signup"
-              className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
+              className="text-indigo-600 hover:text-indigo-700 font-medium"
             >
-              Sign up
+              Create an account
             </Link>
           </p>
-        </div>
-      </section>
+          <p className="text-xs text-gray-400 mt-4">
+            By continuing, you agree to V-Chat&apos;s{" "}
+            <a href="/terms" className="underline hover:text-gray-500">
+              Terms of Service
+            </a>{" "}
+            and{" "}
+            <a href="/privacy" className="underline hover:text-gray-500">
+              Privacy Policy
+            </a>.
+          </p>
+        </footer>
+      </article>
     </main>
   );
 };
