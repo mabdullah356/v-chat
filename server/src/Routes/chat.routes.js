@@ -4,6 +4,6 @@ const isUserLogin = require("../Middlewares/isUserLogin");
 const router = express.Router();
 
 router.post("/",isUserLogin,newChat)
-router.get("/:id", isUserLogin, ChatWithUser);
+router.get("/:username", isUserLogin, ChatWithUser);
 
 module.exports = router;

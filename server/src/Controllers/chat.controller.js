@@ -3,21 +3,21 @@ const Chat  = require("../Models/chat.model");
 
 const newChat = async (req,res) => {
     
-    const {receiver,type,message} = req.body;
+    const {username,type,message} = req.body;
     
-    if(!receiver){
+    if(!username){
         return res.status(400).json({message:"Receiver is required"});
     };
     
     try {
     
-        const receiverUser = await User.findById(receiver);
+        const receiverUser = await User.findOne({username});
         
         if(!receiverUser){
             return res.status(404).json({message:"Receiver User not found"});
         };
         
-        const newChat  = new Chat({sender:req.user.id,receiver,message});
+        const newChat  = new Chat({sender:req.user.id,receiver:receiverUser._id,message});
 
         await newChat.save();
 
@@ -33,22 +33,22 @@ const newChat = async (req,res) => {
 
 //get all chats with respect to receiver 
 const ChatWithUser = async (req, res) => {
-    const { id } = req.params;
+    const {username } = req.params;
 
-    if (!id) {
+    if (!username) {
         return res.status(400).json({ message: "User ID is required" });
     }
 
     try {
-        const user = await User.findById(id);
+        const user = await User.findOne({username});
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
 
         const chats = await Chat.find({
             $or: [
-                { sender: req.user._id, receiver: id },
-                { sender: id, receiver: req.user._id }
+                { sender: req.user._id, receiver: user._id },
+                { sender: user._id, receiver: req.user._id }
             ]
         })
             .populate("sender", "fullName avatar")
