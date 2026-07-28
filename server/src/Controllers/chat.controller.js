@@ -1,5 +1,12 @@
 const User = require("../Models/user.model");
 const Chat  = require("../Models/chat.model");
+const cloudinary = require("cloudinary").v2;
+
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_API_KEY,
+  api_secret: process.env.CLOUD_API_SECRET,
+});
 
 const newChat = async (req,res) => {
     
@@ -8,16 +15,28 @@ const newChat = async (req,res) => {
     if(!username){
         return res.status(400).json({message:"Receiver is required"});
     };
-    
+    console.log(req.file);    
     try {
-    
+        
         const receiverUser = await User.findOne({username});
         
         if(!receiverUser){
             return res.status(404).json({message:"Receiver User not found"});
         };
+
+        let imageUrl = null;
+        if(req.file){
+            const result = await new Promise((resolve,reject)=>{
+                const stream = cloudinary.uploader.upload_stream(
+                    {folder:"chats"},
+                    (err,result)=> err ? reject(err) : resolve(result)
+                );
+                stream.end(req.file.buffer);
+            });
+            imageUrl = result.secure_url;
+        }
         
-        const newChat  = new Chat({sender:req.user.id,receiver:receiverUser._id,message});
+        const newChat  = new Chat({sender:req.user.id,receiver:receiverUser._id,message,image:imageUrl});
 
         await newChat.save();
 
