@@ -37,6 +37,14 @@ const SocketInit = (httpServer) => {
             io.emit("online-users", onlineUsers);
         });
 
+        socket.on("typing", ({ receiverId }) => {
+            if (receiverId) io.to(receiverId).emit("typing", { senderId: socket.id });
+        });
+
+        socket.on("stop-typing", ({ receiverId }) => {
+            if (receiverId) io.to(receiverId).emit("stop-typing", { senderId: socket.id });
+        });
+
         socket.on("send-message", ({ receiverId, receiverUsername, chat }) => {
             if (receiverId) {
                 io.to(receiverId).emit("receive-message", chat);

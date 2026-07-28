@@ -44,12 +44,14 @@ function UserChat() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const { currentUser } = useContext(currUser);
   const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
   const messagesEndRef = useRef(null);
   const socketRef = useRef(null);
   const fileInputRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
 
   useEffect(() => {
     const socket = io("http://localhost:3000");
@@ -75,9 +77,16 @@ function UserChat() {
       }
     };
 
+    const handleTyping = () => setIsTyping(true);
+    const handleStopTyping = () => setIsTyping(false);
+
     socket.on("receive-message", handleNewMessage);
+    socket.on("typing", handleTyping);
+    socket.on("stop-typing", handleStopTyping);
     return () => {
       socket.off("receive-message", handleNewMessage);
+      socket.off("typing", handleTyping);
+      socket.off("stop-typing", handleStopTyping);
     };
   }, [currentUser, user._id]);
 
@@ -134,6 +143,8 @@ function UserChat() {
       setMessages((prev) => [newMsg, ...prev]);
       setMessage("");
       setImage(null);
+      clearTimeout(typingTimeoutRef.current);
+      socketRef.current?.emit("stop-typing", { receiverId: currentUser._id });
       socketRef.current?.emit("send-message", {
         receiverId: currentUser._id,
         receiverUsername: currentUser.username,
@@ -143,6 +154,25 @@ function UserChat() {
       console.error(error);
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const val = e.target.value;
+    setMessage(val);
+
+    const socket = socketRef.current;
+    if (!socket || !currentUser?._id) return;
+
+    if (val.trim()) {
+      socket.emit("typing", { receiverId: currentUser._id });
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = setTimeout(() => {
+        socket.emit("stop-typing", { receiverId: currentUser._id });
+      }, 1000);
+    } else {
+      clearTimeout(typingTimeoutRef.current);
+      socket.emit("stop-typing", { receiverId: currentUser._id });
     }
   };
 
@@ -254,6 +284,11 @@ function UserChat() {
         <div ref={messagesEndRef} />
       </section>
 
+      {isTyping && (
+        <div className="px-5 py-2 text-xs text-gray-400 italic">
+          {currentUser.fullName} is typing...
+        </div>
+      )}
       <footer className="px-4 py-3 border-t border-gray-200">
         <div className="flex items-center gap-2 mb-2">
           {image && (
@@ -277,7 +312,7 @@ function UserChat() {
             type="text"
             placeholder="Type a message..."
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             className="flex-1 px-4 py-2.5 bg-gray-100 rounded-full text-sm text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white transition-all"
           />
