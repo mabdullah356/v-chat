@@ -38,6 +38,8 @@ const Chat = () => {
 export default Chat;
 
 function UserChat() {
+
+  const [image ,setImage]  = useState(null);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -47,6 +49,7 @@ function UserChat() {
   const token = localStorage.getItem("token");
   const messagesEndRef = useRef(null);
   const socketRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     const socket = io("http://localhost:3000");
@@ -110,15 +113,18 @@ function UserChat() {
   }, [currentUser, token]);
 
   const sendNewMessage = async () => {
-    if (!message.trim() || sending) return;
+    if ((!message.trim() && !image) || sending) return;
 
     setSending(true);
     try {
-      const res = await axios.post(
-        "/api/chats",
-        { username: currentUser.username, message: message.trim() },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const formData = new FormData();
+      formData.append("username", currentUser.username);
+      if (message.trim()) formData.append("message", message.trim());
+      if (image) formData.append("image", image);
+
+      const res = await axios.post("/api/chats", formData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const chat = res.data.chat;
       const newMsg = {
         ...chat,
@@ -127,6 +133,7 @@ function UserChat() {
       };
       setMessages((prev) => [newMsg, ...prev]);
       setMessage("");
+      setImage(null);
       socketRef.current?.emit("send-message", {
         receiverId: currentUser._id,
         receiverUsername: currentUser.username,
@@ -223,7 +230,8 @@ function UserChat() {
                     : "bg-gray-100 text-gray-900 rounded-bl-md"
                 }`}
               >
-                <p>{msg.message}</p>
+                {msg.fileUrl && <img src={msg.fileUrl} className="max-w-[200px] rounded-lg mb-1" />}
+                {msg.message && <p>{msg.message}</p>}
                 <p
                   className={`text-[10px] mt-1 ${
                     msg.sender._id === user._id
@@ -247,8 +255,19 @@ function UserChat() {
       </section>
 
       <footer className="px-4 py-3 border-t border-gray-200">
+        <div className="flex items-center gap-2 mb-2">
+          {image && (
+            <div className="relative">
+              <img src={URL.createObjectURL(image)} className="w-16 h-16 object-cover rounded-lg border" />
+              <button onClick={()=>setImage(null)} className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center">×</button>
+            </div>
+          )}
+          <input type="file" accept="image/*" ref={fileInputRef} className="hidden"
+          onChange={(e)=>setImage(e.target.files[0])}
+          />
+        </div>
         <div className="flex items-center gap-2">
-          <button className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
+          <button onClick={()=>fileInputRef.current?.click()} className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
             <Paperclip className="w-5 h-5" />
           </button>
           <button className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
@@ -264,7 +283,7 @@ function UserChat() {
           />
           <button
             onClick={sendNewMessage}
-            disabled={!message.trim() || sending}
+            disabled={(!message.trim() && !image) || sending}
             className="p-2.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 disabled:bg-indigo-400 text-white rounded-full transition-colors disabled:cursor-not-allowed"
           >
             {sending ? (

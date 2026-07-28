@@ -36,7 +36,7 @@ const newChat = async (req,res) => {
             imageUrl = result.secure_url;
         }
         
-        const newChat  = new Chat({sender:req.user.id,receiver:receiverUser._id,message,image:imageUrl});
+        const newChat  = new Chat({sender:req.user.id,receiver:receiverUser._id,message,fileUrl:imageUrl});
 
         await newChat.save();
 
